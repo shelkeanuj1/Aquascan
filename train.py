@@ -61,6 +61,8 @@ for name in MODELS:
         tf.keras.backend.clear_session(); model, base = build(name); fit(model, base, X[tr], yt, 1e-3)
         oof[va] = model.predict(X[va], verbose=0) * sd + mu; base_pred[va] = mu   # base_pred = "always predict the mean"
         print(name, "fold", k + 1, "done", flush=True)
+    pd.DataFrame(np.hstack([Y, oof]), columns=[f"true_{t}" for t in T] + [f"pred_{t}" for t in T]).assign(
+        id=df.id.values, is_synthetic=df.is_synthetic.values).to_csv(f"oof_{name}.csv", index=False)   # predictions for the report
     for j, t in enumerate(T):
         ok = orig & ~np.isnan(Y[:, j])
         results.append(dict(model=name, target=t + (" (log)" if t in LOG else ""), R2=r2_score(Y[ok, j], oof[ok, j]),
